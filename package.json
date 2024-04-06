@@ -1,0 +1,41 @@
+{
+  "name": "magic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "doc": "typedoc",
+    "test": "tsc && mocha ./tests/**/*.spec.ts",
+    "coverage": "c8 -x \"dist/\" npm test && c8 report --reporter=lcov",
+    "start": "tsc && node dist/index.js",
+    "modi": "tsc && node dist/modi/index.js",
+    "testmodi": "mocha ./tests/modi.spec.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.28", 
+    "@types/sinon": "^17.0.3",
+    "@types/yargs": "^17.0.32",
+    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@typescript-eslint/parser": "^7.1.1",
+    "c8": "^9.1.0",
+    "chai": "^4.3.7",
+    "chalk": "^5.3.0",
+    "coveralls": "^3.1.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "mocha": "^10.3.0",
+    "prettier": "^3.2.5",
+    "sinon": "^17.0.1",
+    "ts-node": "^10.9.2",
+    "tsc-watch": "^6.0.4",
+    "typedoc": "^0.25.10",
+    "typescript": "^5.3.3",
+    "yargs": "^17.7.2"
+  }
+}

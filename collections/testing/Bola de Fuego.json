@@ -1,0 +1,10 @@
+{
+  "ID": 2,
+  "Name": "Bola de Fuego",
+  "Mana": 5,
+  "Color": "Rojo",
+  "Type": "Conjuro",
+  "Rarity": "Infrecuente",
+  "Text": "Duele bastante.",
+  "Value": 25
+}

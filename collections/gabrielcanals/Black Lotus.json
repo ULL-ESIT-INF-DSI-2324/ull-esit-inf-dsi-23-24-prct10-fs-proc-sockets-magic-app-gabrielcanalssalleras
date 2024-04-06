@@ -1,0 +1,11 @@
+{
+  "ID": 1,
+  "Name": "Black Lotus",
+  "Mana": 2,
+  "Color": "Negro",
+  "Type": "Criatura",
+  "Rarity": "Comun",
+  "Strres": 2,
+  "Text": "hi",
+  "Value": 51
+}
