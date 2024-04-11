@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "doc": "typedoc",
-    "test": "tsc && mocha ./tests/**/*.spec.ts",
+    "test": "mocha ./tests/**/*.spec.ts",
     "coverage": "c8 -x \"dist/\" npm test && c8 report --reporter=lcov",
     "start": "tsc && node dist/index.js",
     "modi": "tsc && node dist/modi/index.js",
@@ -18,7 +18,7 @@
   "devDependencies": {
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.11.28", 
+    "@types/node": "^20.12.7",
     "@types/sinon": "^17.0.3",
     "@types/yargs": "^17.0.32",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
@@ -29,7 +29,9 @@
     "coveralls": "^3.1.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "events": "^3.3.0",
     "mocha": "^10.3.0",
+    "net": "^1.0.2",
     "prettier": "^3.2.5",
     "sinon": "^17.0.1",
     "ts-node": "^10.9.2",

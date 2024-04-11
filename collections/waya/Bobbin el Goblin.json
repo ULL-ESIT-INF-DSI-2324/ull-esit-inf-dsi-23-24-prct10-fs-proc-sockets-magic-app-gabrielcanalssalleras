@@ -1,0 +1,12 @@
+{
+  "ID": 12,
+  "Name": "Bobbin el Goblin",
+  "Mana": 1,
+  "Color": "Verde",
+  "Type": "Criatura",
+  "Rarity": "Rara",
+  "Strength": 1,
+  "Resistance": 2,
+  "Text": "Aplica herida.",
+  "Value": 1
+}

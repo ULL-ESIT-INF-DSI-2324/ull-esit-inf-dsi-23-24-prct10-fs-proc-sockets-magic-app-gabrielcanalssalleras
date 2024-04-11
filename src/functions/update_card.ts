@@ -1,6 +1,6 @@
-import fs from 'fs';
+import fs from "fs";
 import { Checker } from "../classes/checker.js";
-import chalk from 'chalk';
+import chalk from "chalk";
 
 // Obtiene la instancia de la clase Checker
 const checker = Checker.getInstance();
@@ -20,44 +20,121 @@ const checker = Checker.getInstance();
  * @param Text - El nuevo texto de la carta (opcional).
  * @param Value - El nuevo valor de la carta (opcional).
  */
-export function updateCard(ID: unknown, userCollection: string, Name?: unknown, Mana?: unknown, Color?: unknown, Type?: unknown, Rarity?: unknown, Strength?: unknown, Resistance?: unknown, Loyalty?: unknown, Text?: unknown, Value?: unknown): void {
-	let name: string;
-	for (const file of fs.readdirSync(userCollection)) {
-		const card = JSON.parse(fs.readFileSync(`${userCollection}/${file}`, 'utf-8'));
-		if (card.ID === ID) {
-			name = card.Name;
-			break;
-		}
-	}
-	const card = JSON.parse(fs.readFileSync(`${ userCollection }/${ name! }.json`, 'utf-8'));
-	if (Name) card.Name = Name;
-	if (Mana && checker.checkMana(Mana)) card.Mana = Mana;
-	if (Color && checker.checkColor(Color)) card.Color = Color;
-	if (Type && checker.checkType(Type)) card.Type = Type;
-	if (Rarity && checker.checkRarity(Rarity)) card.Rarity = Rarity;
-	if (Strength) card.Strength = Strength;
-	if (Resistance) card.Resistance = Resistance;
-	if (Loyalty) card.Loyalty = Loyalty;
-	if (Text) card.Text = Text;
-	if (Value) card.Value = Value;
-	if (!checker.checkLoyalty(card.Type, card.Loyalty) || 
-			!checker.checkStrRes(card.Type, card.Strength, card.Resistance)) {
-		console.log(chalk.red('Card not updated!'));
-		return;
-	}
-	fs.writeFileSync(`${ userCollection }/${ name! }.json`, JSON.stringify({
-		ID: card.ID,
-		Name: card.Name,
-		Mana: card.Mana,
-		Color: card.Color,
-		Type: card.Type,
-		Rarity: card.Rarity,
-		Strength: card.Strength,
-		Resistance: card.Resistance,
-		Loyalty: card.Loyalty,
-		Text: card.Text,
-		Value: card.Value
-	}, null, 2)); 
-	if (Name) fs.renameSync(`${ userCollection }/${ name! }.json`, `${ userCollection }/${ Name }.json`);
-	console.log(chalk.green('Card updated!'));
+export function updateCard(
+  ID: unknown,
+  userCollection: string,
+  callback: (error: string | undefined, result: string | undefined) => void,
+  Name?: unknown,
+  Mana?: unknown,
+  Color?: unknown,
+  Type?: unknown,
+  Rarity?: unknown,
+  Strength?: unknown,
+  Resistance?: unknown,
+  Loyalty?: unknown,
+  Text?: unknown,
+  Value?: unknown,
+): void {
+  let name: string | undefined;
+  if (!checker.checkIfCardExistsForThisUser("", userCollection, ID)) {
+    console.log(
+      chalk.red(
+        `Card not found at ${userCollection.split("/")[1]} collection!`,
+      ),
+    );
+    callback(
+      `Card not found at ${userCollection.split("/")[1]} collection!`,
+      undefined,
+    );
+  }
+
+  fs.stat(userCollection, (err) => {
+		if (err) {
+			console.log(err.message);
+      callback(`Card not found!`, undefined);
+    } else {
+      fs.readdir(userCollection, (err, files) => {
+        if (err) {
+          callback(err.message, undefined);
+        } else {
+          for (const file of files) {
+						fs.readFile(`${userCollection}/${file}`, (err, data) => {
+							if (err) {
+								callback(err.message, undefined);
+                return;
+              }
+              if (JSON.parse(data.toString()).ID == ID) {
+								const card = JSON.parse(fs.readFileSync(`${userCollection}/${file}`).toString());
+								if (Name) card!.Name = Name;
+								if (Mana && checker.checkMana(Mana)) card!.Mana = Mana;
+								if (Color && checker.checkColor(Color)) card!.Color = Color;
+								if (Type && checker.checkType(Type)) card!.Type = Type;
+								if (Rarity && checker.checkRarity(Rarity)) card!.Rarity = Rarity;
+								if (Strength) card!.Strength = Strength;
+								if (Resistance) card!.Resistance = Resistance;
+								if (Loyalty) card!.Loyalty = Loyalty;
+								if (Text) card!.Text = Text;
+								if (Value) card!.Value = Value;
+								if (
+								  !checker.checkLoyalty(card!.Type, card!.Loyalty) ||
+								  !checker.checkStrRes(card!.Type, card!.Strength, card!.Resistance)
+								) {
+								  console.log(chalk.red("Card not updated!"));
+								  return;
+								}
+			
+								if (Name) {
+								  fs.rename(
+								    `${userCollection}/${name!}.json`,
+								    `${userCollection}/${Name}.json`,
+								    (err) => {
+								      if (err) {
+								        callback(chalk.red(err.message), undefined);
+								      } else {
+								        callback(
+								          undefined,
+								          chalk.green(`File renamed from ${name!} to ${Name}`),
+								        );
+								      }
+								    },
+								  );
+								  name = Name as string;
+								} else name = card!.Name;
+	
+								fs.writeFile(
+								  `${userCollection}/${name!}.json`,
+								  JSON.stringify(
+								    {
+								      ID: card!.ID,
+								      Name: card!.Name,
+								      Mana: card!.Mana,
+								      Color: card!.Color,
+								      Type: card!.Type,
+								      Rarity: card!.Rarity,
+								      Strength: card!.Strength,
+								      Resistance: card!.Resistance,
+								      Loyalty: card!.Loyalty,
+								      Text: card!.Text,
+								      Value: card!.Value,
+								    },
+								    null,
+								    2,
+								  ),
+								  (err) => {
+								    if (err) {
+								      callback(chalk.red(err.message), undefined);
+											return;
+								    } else {
+								      callback(undefined, chalk.green(`Card updated!`));
+											return;
+								    }
+								  },
+								);
+              }
+            });
+          }
+        }
+      });
+    }
+  });
 }
