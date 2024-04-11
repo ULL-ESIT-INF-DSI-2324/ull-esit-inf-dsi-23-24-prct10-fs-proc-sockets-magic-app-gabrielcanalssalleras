@@ -5,7 +5,7 @@
 ---
 ## Objetivo de la práctica
 
-En el transcurso de esta práctica seguiremos trabajando con TypeScript, desarrollando un sistema de gestión de colecciones de cartas Magic. Este sistema será interactuable mediante comandos y opciones, destacando el uso de YARGS para la gestión de argumentos y opciones de la línea de comandos y Chalk para la mejora de la presentación de la información.
+En el transcurso de esta práctica seguiremos trabajando con TypeScript, ampliamos nuestro gestor de cartas Magic y lo convertimos en una aplicación cliente-servidor. Para ello, utilizaremos la librería YARGS para gestionar las entradas de la línea de comandos y la librería Chalk para dar color a la salida de la consola.
 
 ## Tareas previas
 Tras aceptar debidamente la tarea en GitHub Classroom, habilitamos GitHub Pages para la elaboración de este informe. Posteriormente, clonamos el repositorio en nuestro equipo local y creamos una rama `code` para el desarrollo de la práctica.
@@ -15,23 +15,174 @@ Seguidamente, creamos la estructura de trabajo adecuada para los proyectos escri
 Adicionalmente complementamos nuestro proyecto con Typedoc para la documentación, Mocha y Chai para realizar las pruebas unitarias del **TDD** e C8, Coveralls y SonarCloud para comprobar el cubrimiento del código.
 
 ## Desarrollo
-Para gestionar las entradas de la línea de comandos, utilizamos la librería YARGS. Esta librería nos permite definir comandos y opciones de forma sencilla y eficiente. Para mejorar la presentación de la información, utilizamos la librería Chalk, que nos permite dar color a la salida de la consola.
+Hemos creado la gestión de nuestro dsrvidor utilizando el módulo `net` de Node.js. Hemos creado un servidor que escucha en el puerto 60300 y que recibe las peticiones de los clientes. Hemos creado un cliente que se conecta al servidor y que envía las peticiones al servidor, un protocolo de comunicación entre el cliente y el servidor lo configuramos con el gestor de cartas que se encarga de gestionar las cartas de los usuarios. 
 
-Los comandos que se pueden utilizar son:
+Para la gestión de las cartas, hemos utilizado la librería `YARGS` para gestionar las entradas de la línea de comandos y la librería `Chalk` para dar color a la salida de la consola.
 
-- `add`: Añade una carta a la colección.
-- `list`: Muestra la colección de cartas de un usuario.
-- `read`: Muestra la información de una carta.
-- `remove`: Elimina una carta de la colección.
-- `update`: Actualiza la información de una carta.
+La gestión de la comunicación entre el cliente y el servidor se ha realizado mediante la refactorización de las funciones para convertirlas en funciones asíncronas que siguen el patrón `callback`.
 
-Para todas estas funciones el principal atributo será el ID de la carta, que será el identificador único de la misma. Para añadir una carta, se deberá especificar el nombre, el mana, el tipo, el color, el valor de mercado y la rareza de la carta. Para actualizar una carta, se deberá especificar el ID de la carta y los campos que se quieren actualizar.
+A modo de ejemplo, se presenta la función `addCard` que añade una carta a la colección de un usuario antes de la refactorización:
 
-Si una carta es de tipo `Criatura`, se deberá especificar la fuerza y la resistencia de la misma. Si una carta es de tipo `Planeswalker`, se deberá especificar el número de lealtad del planeswalker.
+```typescript
+export function newCard(
+  ID: unknown,
+  Name: unknown,
+  User: unknown,
+  Mana: unknown,
+  Color: unknown,
+  Type: unknown,
+  Rarity: unknown,
+  Strres: unknown[],
+  Loyalty: unknown,
+  Text: unknown,
+  Value: unknown,
+  userCollection: unknown,
+  callback: (error: string | undefined, result: string | undefined) => void,
+): void {
+  if (
+    !checker.checkLoyalty(Type, Loyalty) ||
+    !checker.checkStrRes(Type, Strres[0], Strres[1])
+  ) {
+    console.log(chalk.red(`Card not added to ${User} collection!`));
+    callback(chalk.red(`Card not added to ${User} collection!`), undefined);
+    return;
+  }
+  if (
+    checker.checkIfCardExistsForThisUser(Name, userCollection as string, ID)
+  ) {
+    console.log(chalk.red(`Card already exists at ${User} collection!`));
+    callback(`Card already exists at ${User} collection!`, undefined);
+    return;
+  }
+  
+  fs.stat(`${userCollection}/${Name}.json`, (err) => {
+    if (
+      err ||
+      !(
+        checker.checkId(ID, userCollection) &&
+        checker.checkMana(Mana) &&
+        checker.checkColor(Color) &&
+        checker.checkType(Type) &&
+        checker.checkRarity(Rarity)
+      )
+    ) {
+      fs.writeFile(
+        `${userCollection}/${Name}.json`,
+        JSON.stringify(
+          {
+            ID,
+            Name,
+            Mana,
+            Color,
+            Type,
+            Rarity,
+            Strength: Strres[0],
+            Resistance: Strres[1],
+            Loyalty,
+            Text,
+            Value,
+          },
+          null,
+          2,
+        ),
+        (err) => {
+          if (err) {
+            callback(chalk.red(err.message), undefined);
+          } else {
+            callback(
+              undefined,
+              chalk.green(`Card added to ${User} collection!`),
+            );
+          }
+        },
+      );
+    } else {
+      callback(chalk.red(`Card not added to ${User} collection!`), undefined);
+    }
+  });
+}
+```
+Y después de la refactorización:
 
-La comprobación de que los datos introducidos son correctos se realizará mediante el uso de la clase `Checker`, que implementará una serie de métodos para comprobar que los datos introducidos son correctos.
-
-De la misma manera utilizaremos la librería `Chalk` para dar color a la salida de la consola. Todos los mensajes informativos serán de color verde y los mensajes de error serán de color rojo.
+```typescript
+export function newCard(
+  ID: unknown,
+  Name: unknown,
+  User: unknown,
+  Mana: unknown,
+  Color: unknown,
+  Type: unknown,
+  Rarity: unknown,
+  Strres: unknown[],
+  Loyalty: unknown,
+  Text: unknown,
+  Value: unknown,
+  userCollection: unknown,
+  callback: (error: string | undefined, result: string | undefined) => void,
+): void {
+  if (
+    !checker.checkLoyalty(Type, Loyalty) ||
+    !checker.checkStrRes(Type, Strres[0], Strres[1])
+  ) {
+    console.log(chalk.red(`Card not added to ${User} collection!`));
+    callback(chalk.red(`Card not added to ${User} collection!`), undefined);
+    return;
+  }
+  if (
+    checker.checkIfCardExistsForThisUser(Name, userCollection as string, ID)
+  ) {
+    console.log(chalk.red(`Card already exists at ${User} collection!`));
+    callback(`Card already exists at ${User} collection!`, undefined);
+    return;
+  }
+  
+  fs.stat(`${userCollection}/${Name}.json`, (err) => {
+    if (
+      err ||
+      !(
+        checker.checkId(ID, userCollection) &&
+        checker.checkMana(Mana) &&
+        checker.checkColor(Color) &&
+        checker.checkType(Type) &&
+        checker.checkRarity(Rarity)
+      )
+    ) {
+      fs.writeFile(
+        `${userCollection}/${Name}.json`,
+        JSON.stringify(
+          {
+            ID,
+            Name,
+            Mana,
+            Color,
+            Type,
+            Rarity,
+            Strength: Strres[0],
+            Resistance: Strres[1],
+            Loyalty,
+            Text,
+            Value,
+          },
+          null,
+          2,
+        ),
+        (err) => {
+          if (err) {
+            callback(chalk.red(err.message), undefined);
+          } else {
+            callback(
+              undefined,
+              chalk.green(`Card added to ${User} collection!`),
+            );
+          }
+        },
+      );
+    } else {
+      callback(chalk.red(`Card not added to ${User} collection!`), undefined);
+    }
+  });
+}
+```
 
 ### Desarrollo Dirigido por Pruebas (TDD)
 
